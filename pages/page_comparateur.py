@@ -1,13 +1,21 @@
 """Comparateur de 2 joueurs."""
 import streamlit as st
 import pandas as pd
-from utils.data_loader import load_valor_data, get_position_label
+from utils.data_loader import (
+    load_valor_data, get_position_label,
+    league_selector, season_selector, LEAGUES, SEASONS
+)
 from utils.charts import comparison_radar
 
 
 st.set_page_config(page_title="Comparateur — VALOR", page_icon="⚔️", layout="wide")
 
-df = load_valor_data()
+league_slug = league_selector(default="ligue1", key="comparateur_league")
+league_display = LEAGUES[league_slug]["display"]
+season_slug = season_selector(default="2024_2025", key="comparateur_season")
+season_display = SEASONS[season_slug]["display"]
+
+df = load_valor_data(league_slug, season_slug)
 
 st.title("⚔️ Comparateur de joueurs")
 st.markdown("Compare 2 joueurs sur leur profil tactique respectif.")
@@ -93,22 +101,22 @@ stats_compare = pd.DataFrame({
     "Stat": ["Minutes", "Buts", "Passes decisives", "xG", "xA",
              "Tacles gagnes", "Interceptions"],
     player1["Player"]: [
-        int(player1["PlayingTime_Min"]),
-        int(player1.get("Performance_Gls", 0)),
-        int(player1.get("Performance_Ast", 0)),
+        str(int(player1["PlayingTime_Min"])),
+        str(int(player1.get("Performance_Gls", 0))),
+        str(int(player1.get("Performance_Ast", 0))),
         f"{player1.get('us_xG_season', 0):.2f}",
         f"{player1.get('us_xA_season', 0):.2f}",
-        int(player1.get("fbref_tackles_won", 0)),
-        int(player1.get("fbref_interceptions", 0)),
+        str(int(player1.get("fbref_tackles_won", 0))),
+        str(int(player1.get("fbref_interceptions", 0))),
     ],
     player2["Player"]: [
-        int(player2["PlayingTime_Min"]),
-        int(player2.get("Performance_Gls", 0)),
-        int(player2.get("Performance_Ast", 0)),
+        str(int(player2["PlayingTime_Min"])),
+        str(int(player2.get("Performance_Gls", 0))),
+        str(int(player2.get("Performance_Ast", 0))),
         f"{player2.get('us_xG_season', 0):.2f}",
         f"{player2.get('us_xA_season', 0):.2f}",
-        int(player2.get("fbref_tackles_won", 0)),
-        int(player2.get("fbref_interceptions", 0)),
+        str(int(player2.get("fbref_tackles_won", 0))),
+        str(int(player2.get("fbref_interceptions", 0))),
     ],
 })
 

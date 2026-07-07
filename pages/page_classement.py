@@ -1,14 +1,22 @@
 """Classement VALOR complet avec filtres."""
 import streamlit as st
-from utils.data_loader import load_valor_data, get_position_label
+from utils.data_loader import (
+    load_valor_data, get_position_label,
+    league_selector, season_selector, LEAGUES, SEASONS
+)
 
 
 st.set_page_config(page_title="Classement — VALOR", page_icon="📊", layout="wide")
 
-df = load_valor_data()
+league_slug = league_selector(default="ligue1", key="classement_league")
+league_display = LEAGUES[league_slug]["display"]
+season_slug = season_selector(default="2024_2025", key="classement_season")
+season_display = SEASONS[season_slug]["display"]
+
+df = load_valor_data(league_slug, season_slug)
 
 st.title("📊 Classement complet")
-st.markdown(f"**{len(df)} joueurs** notes — Ligue 1 2024-2025")
+st.markdown(f"**{len(df)} joueurs** notes — {league_display} {season_display}")
 
 # --- Filtres ---
 st.sidebar.header("Filtres")
