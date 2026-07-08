@@ -132,3 +132,24 @@ def season_selector(default: str = None, key: str = "season_selector") -> str:
         key=key,
     )
     return SEASON_DISPLAY_TO_SLUG[selected_display]
+
+@st.cache_data
+def load_all_leagues_season(season: str = "2025_2026") -> pd.DataFrame:
+    """
+    Charge et concatène les 5 ligues Big 5 pour la saison donnée.
+    Utile pour Similar Players (cross-league).
+    """
+    dfs = []
+    for league_slug in LEAGUES.keys():
+        try:
+            df = load_valor_data(league_slug, season)
+            df["__league_slug"] = league_slug
+            df["__league_display"] = LEAGUES[league_slug]["display"]
+            dfs.append(df)
+        except FileNotFoundError:
+            pass
+    
+    if not dfs:
+        return pd.DataFrame()
+    
+    return pd.concat(dfs, ignore_index=True)
