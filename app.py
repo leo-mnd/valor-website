@@ -14,7 +14,7 @@ st.set_page_config(
 # --- Sélecteurs (sidebar) ---
 league_slug = league_selector(default="ligue1")
 league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2024_2025")
+season_slug = season_selector(default="2025_2026")
 season_display = SEASONS[season_slug]["display"]
 
 # --- Charger la data ---

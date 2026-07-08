@@ -111,8 +111,12 @@ def league_selector(default: str = "ligue1", key: str = "league_selector") -> st
     )
     return LEAGUE_DISPLAY_TO_SLUG[selected_display]
 
+LATEST_SEASON = "2025_2026"  # À mettre à jour à chaque nouvelle saison
 
-def season_selector(default: str = "2024_2025", key: str = "season_selector") -> str:
+def season_selector(default: str = None, key: str = "season_selector") -> str:
+    if default is None:
+        default = LATEST_SEASON
+    # ... reste inchangé
     """
     Affiche un sélecteur de saison dans la sidebar Streamlit.
     Retourne le slug de la saison sélectionnée.

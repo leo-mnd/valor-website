@@ -10,7 +10,7 @@ st.set_page_config(page_title="Classement — VALOR", page_icon="📊", layout="
 
 league_slug = league_selector(default="ligue1", key="classement_league")
 league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2024_2025", key="classement_season")
+season_slug = season_selector(default="2025_2026", key="classement_season")
 season_display = SEASONS[season_slug]["display"]
 
 df = load_valor_data(league_slug, season_slug)
