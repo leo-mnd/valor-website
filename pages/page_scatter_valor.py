@@ -63,26 +63,39 @@ fig = px.scatter(
     },
     title=f"Distribution VALOR × Minutes — {get_position_label(poste_select)} — {league_display} {season_display}",
     height=650,
+    template="plotly_dark",
 )
 
 fig.update_traces(
-    marker=dict(size=12, line=dict(width=1, color="DarkSlateGrey")),
+    marker=dict(size=12, line=dict(width=1, color="rgba(255,255,255,0.3)")),
 )
 
 fig.update_layout(
-    xaxis_title="VALOR (score de performance)",
+    xaxis_title="VALOR",
     yaxis_title="Minutes jouées sur la saison",
-    plot_bgcolor="white",
-    hoverlabel=dict(bgcolor="white", font_size=13),
+    plot_bgcolor="#0e1117",
+    paper_bgcolor="#0e1117",
+    font=dict(color="white", size=13),
+    hoverlabel=dict(bgcolor="#262730", font_size=13, font_color="white"),
+    title_font=dict(size=16),
+    xaxis=dict(gridcolor="rgba(255,255,255,0.1)", zerolinecolor="rgba(255,255,255,0.2)"),
+    yaxis=dict(gridcolor="rgba(255,255,255,0.1)", zerolinecolor="rgba(255,255,255,0.2)"),
 )
 
-# Lignes de repères
-fig.add_hline(y=1200, line_dash="dash", line_color="grey", opacity=0.5,
-              annotation_text="Seuil bonus/malus (1200 min)", annotation_position="right")
-fig.add_vline(x=50, line_dash="dot", line_color="grey", opacity=0.3,
-              annotation_text="VALOR médian", annotation_position="top")
+# Lignes de repères sans annotation (pour éviter chevauchement avec la barre couleur)
+fig.add_hline(y=1200, line_dash="dash", line_color="rgba(255,255,255,0.4)", opacity=0.7)
+fig.add_vline(x=50, line_dash="dot", line_color="rgba(255,255,255,0.3)", opacity=0.5)
 
 st.plotly_chart(fig, use_container_width=True)
+
+# --- Légende sous le graph ---
+st.markdown("""
+<div style="font-size:12px; color:#888; margin-top:-15px;">
+📏 <b>Ligne horizontale (pointillés) :</b> seuil 1200 min (bonus/malus SSS)
+&nbsp;&nbsp;·&nbsp;&nbsp;
+📊 <b>Ligne verticale (pointillés) :</b> VALOR = 50 (moyenne théorique)
+</div>
+""", unsafe_allow_html=True)
 
 # --- Légende / interprétation ---
 st.markdown("---")
