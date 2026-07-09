@@ -165,9 +165,9 @@ with col_top_right:
         "DM": ["int_p90_adj_z", "tkl_won_p90_adj_z", "fls_committed_p90_adj_z", "us_xgbuildup_p90_adj_z", "us_xgchain_p90_adj_z"],
         "CM": ["ast_p90_adj_z", "us_xa_p90_adj_z", "us_kp_p90_adj_z", "int_p90_adj_z", "us_xgbuildup_p90_adj_z"],
         "AM": ["us_kp_p90_adj_z", "us_xa_p90_adj_z", "ast_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z"],
-        "W_L": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
-        "W_R": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
-        "ST": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
+        "W_L": ["gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
+        "W_R": ["gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
+        "ST": ["gls_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
     }
     metrics_radar = RADAR_METRICS_BY_POSITION.get(poste, ["us_xg_p90_adj_z", "us_xa_p90_adj_z", "ast_p90_adj_z"])
     
@@ -310,34 +310,40 @@ with col_bot_right:
             "AM": ["us_kp_p90_adj_z", "us_xa_p90_adj_z", "ast_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z"],
             "W_L": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z", "crs_p90_adj_z"],
             "W_R": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_kp_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z", "crs_p90_adj_z"],
-            "ST": ["us_gls_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
+            "ST": ["gls_p90_adj_z", "us_xg_p90_adj_z", "us_shots_p90_adj_z", "us_xa_p90_adj_z", "fls_drawn_p90_adj_z"],
         }
-        sim_metrics = SIMILARITY_METRICS.get(poste, ["us_xg_p90_adj_z", "us_xa_p90_adj_z", "ast_p90_adj_z"])
+        sim_metrics_all = SIMILARITY_METRICS.get(poste, ["us_xg_p90_adj_z", "us_xa_p90_adj_z", "ast_p90_adj_z"])
         
-        # Vecteur du joueur cible
-        player_vec = np.array([player.get(m, 0) if not pd.isna(player.get(m, 0)) else 0 for m in sim_metrics])
+        # Filtre les colonnes qui existent réellement dans le dataset
+        sim_metrics = [m for m in sim_metrics_all if m in df_pool.columns]
         
-        # Vecteurs des candidats
-        pool_matrix = df_pool[sim_metrics].fillna(0).to_numpy()
+        if len(sim_metrics) == 0:
+            st.info(f"Pas de métriques de similarité disponibles pour le poste {poste}.")
+        else:
+            # Vecteur du joueur cible
+            player_vec = np.array([player.get(m, 0) if not pd.isna(player.get(m, 0)) else 0 for m in sim_metrics])
+            
+            # Vecteurs des candidats
+            pool_matrix = df_pool[sim_metrics].fillna(0).to_numpy()
         
-        # Distances euclidiennes
-        distances = np.linalg.norm(pool_matrix - player_vec, axis=1)
+            # Distances euclidiennes
+            distances = np.linalg.norm(pool_matrix - player_vec, axis=1)
         
-        # Similarité (échelle 0-100)
-        # Distance moyenne comme référence pour normaliser
-        scale = np.percentile(distances, 25) if len(distances) > 0 else 1.0
-        similarities = 100 * np.exp(-distances / max(scale, 0.5))
+            # Similarité (échelle 0-100)
+            # Distance moyenne comme référence pour normaliser
+            scale = np.percentile(distances, 25) if len(distances) > 0 else 1.0
+            similarities = 100 * np.exp(-distances / max(scale, 0.5))
         
-        df_pool["__distance"] = distances
-        df_pool["__similarity"] = similarities.round(0).astype(int)
+            df_pool["__distance"] = distances
+            df_pool["__similarity"] = similarities.round(0).astype(int)
         
-        # Top 10 les plus similaires
-        top_similar = df_pool.nsmallest(10, "__distance")[
-            ["Player", "Squad", "__league_display", "VALOR", "__similarity"]
-        ].copy()
-        top_similar.columns = ["Joueur", "Club", "Ligue", "VALOR", "Sim %"]
-        top_similar["VALOR"] = top_similar["VALOR"].round(1)
+            # Top 10 les plus similaires
+            top_similar = df_pool.nsmallest(10, "__distance")[
+                ["Player", "Squad", "__league_display", "VALOR", "__similarity"]
+                ].copy()
+            top_similar.columns = ["Joueur", "Club", "Ligue", "VALOR", "Sim %"]
+            top_similar["VALOR"] = top_similar["VALOR"].round(1)
         
-        st.dataframe(top_similar, hide_index=True, use_container_width=True, height=400)
+            st.dataframe(top_similar, hide_index=True, use_container_width=True, height=400)
         
-        st.caption("💡 Similarité calculée par distance euclidienne sur les z-scores tactiques normalisés du poste.")
+            st.caption("💡 Similarité calculée par distance euclidienne sur les z-scores tactiques normalisés du poste.")
