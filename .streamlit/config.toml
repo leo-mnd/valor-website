@@ -4,4 +4,28 @@ backgroundColor = "#0e1117"
 secondaryBackgroundColor = "#161a23"
 primaryColor = "#4ade80"
 textColor = "#fafafa"
-font = "sans serif"
+font = "Geist Sans, sans-serif"
+
+[[theme.fontFaces]]
+family = "Geist Sans"
+url = "https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5/files/geist-sans-latin-400-normal.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Geist Sans"
+url = "https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5/files/geist-sans-latin-500-normal.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Geist Sans"
+url = "https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5/files/geist-sans-latin-600-normal.woff2"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Geist Sans"
+url = "https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5/files/geist-sans-latin-700-normal.woff2"
+weight = "700"
+style = "normal"

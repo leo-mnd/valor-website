@@ -1,0 +1,64 @@
+"""VALOR — Page d'accueil."""
+import streamlit as st
+from utils.data_loader import (
+    load_valor_data, get_position_label,
+    league_selector, season_selector, LEAGUES, SEASONS
+)
+from utils.theme import render_hero_row
+
+# --- Sélecteurs (sidebar) ---
+league_slug = league_selector(default="ligue1")
+league_display = LEAGUES[league_slug]["display"]
+season_slug = season_selector(default="2025_2026")
+season_display = SEASONS[season_slug]["display"]
+
+# --- Charger la data ---
+df = load_valor_data(league_slug, season_slug)
+
+# --- Header ---
+st.markdown('<p class="valor-hero-title">⚽ VALOR</p>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="valor-hero-subtitle">Valuation Analytics for League Optimized Rating</p>',
+    unsafe_allow_html=True,
+)
+st.markdown(f"**{league_display} — {season_display}**")
+
+# --- Hero : Top 3 ---
+st.markdown("### 🏆 Top 3")
+top3 = df.nlargest(3, "VALOR")
+render_hero_row(top3, get_position_label)
+
+# --- KPIs ---
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Joueurs notés", f"{len(df)}")
+col2.metric("Équipes couvertes", f"{df['Squad'].nunique()}")
+col3.metric("Postes", "11 (hors GK)")
+col4.metric("VALOR max", f"{df['VALOR'].max():.1f}")
+
+st.markdown("---")
+
+# --- Top 10 ---
+st.markdown(f"### 📋 Top 10 — {league_display} {season_display}")
+top10 = df.nlargest(10, "VALOR")[["Rang", "Player", "Squad", "valor_position_12", "VALOR"]].copy()
+top10["Poste"] = top10["valor_position_12"].apply(get_position_label)
+top10 = top10[["Rang", "Player", "Squad", "Poste", "VALOR"]]
+top10.columns = ["Rang", "Joueur", "Équipe", "Poste", "VALOR"]
+st.dataframe(
+    top10,
+    hide_index=True,
+    width="stretch",
+    column_config={
+        "VALOR": st.column_config.ProgressColumn("VALOR", min_value=0, max_value=100, format="%.1f"),
+    },
+)
+
+# --- Info ---
+st.markdown("---")
+st.markdown("""
+💡 **Comment lire VALOR ?**
+Le score VALOR (0-100) évalue chaque joueur selon sa position tactique, ses statistiques par 90 minutes,
+et le contexte de son équipe (SoS = Strength of Schedule). Un ajustement volume récompense les joueurs avec une saison complète (+5 max)
+et pénalise les petits échantillons (-8 max) pour éviter les biais.
+
+📊 Utilise le menu en haut pour explorer le **classement complet**, un **profil joueur**, ou **comparer** deux joueurs.
+""")

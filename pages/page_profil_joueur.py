@@ -9,11 +9,7 @@ from utils.data_loader import (
     league_selector, season_selector, LEAGUES, SEASONS
 )
 from utils.charts import player_radar
-from utils.theme import inject_css
 
-
-st.set_page_config(page_title="Profil joueur — VALOR", page_icon="🎯", layout="wide")
-inject_css()
 
 # --- Sélecteurs ---
 league_slug = league_selector(default="ligue1", key="profil_league")

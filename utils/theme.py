@@ -54,6 +54,19 @@ def inject_css():
         box-shadow: 0 6px 20px rgba(74, 222, 128, 0.15);
     }
 
+    a[data-testid="stTopNavLink"] {
+        border-radius: 8px 8px 0 0 !important;
+        border-bottom: 2px solid transparent;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    a[data-testid="stTopNavLink"][aria-current="page"] {
+        background: rgba(74, 222, 128, 0.12) !important;
+        border-bottom: 2px solid #4ade80;
+    }
+    a[data-testid="stTopNavLink"]:not([aria-current="page"]):hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+    }
+
     .valor-hero-title {
         font-size: 42px;
         font-weight: 800;
