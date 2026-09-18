@@ -6,6 +6,7 @@ from utils.data_loader import (
     load_valor_data, get_position_label,
     league_selector, season_selector, LEAGUES, SEASONS
 )
+from utils.theme import render_position_pitch
 # --- Header ---
 st.title("📈 Scatter VALOR")
 
@@ -23,13 +24,17 @@ df = load_valor_data(league_slug, season_slug)
 # --- Sélecteur poste ---
 positions_dispo = sorted(df["valor_position_12"].unique())
 poste_default = "ST" if "ST" in positions_dispo else positions_dispo[0]
-poste_select = st.segmented_control(
-    "Poste",
-    options=positions_dispo,
-    default=poste_default,
-    required=True,
-    key="scatter_poste",
-)
+col_poste, col_pitch = st.columns([4, 1])
+with col_poste:
+    poste_select = st.segmented_control(
+        "Poste",
+        options=positions_dispo,
+        default=poste_default,
+        required=True,
+        key="scatter_poste",
+    )
+with col_pitch:
+    render_position_pitch([poste_select])
 
 # --- Filtrer et préparer ---
 df_filtered = df[df["valor_position_12"] == poste_select].copy()

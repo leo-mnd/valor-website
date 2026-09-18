@@ -145,6 +145,62 @@ def inject_css():
     """, unsafe_allow_html=True)
 
 
+PITCH_POSITIONS = [
+    {"code": "ST", "x": 50, "y": 9, "matches": ["ST"]},
+    {"code": "AM", "x": 50, "y": 27, "matches": ["AM"]},
+    {"code": "W_L", "x": 13, "y": 43, "matches": ["W_L", "W"]},
+    {"code": "W_R", "x": 87, "y": 43, "matches": ["W_R", "W"]},
+    {"code": "M_L", "x": 26, "y": 58, "matches": ["M_L"]},
+    {"code": "CM", "x": 50, "y": 58, "matches": ["CM"]},
+    {"code": "M_R", "x": 74, "y": 58, "matches": ["M_R"]},
+    {"code": "DM", "x": 50, "y": 76, "matches": ["DM"]},
+    {"code": "FB_L", "x": 13, "y": 92, "matches": ["FB_L", "FB"]},
+    {"code": "FB_R", "x": 87, "y": 92, "matches": ["FB_R", "FB"]},
+    {"code": "CB", "x": 38, "y": 104, "matches": ["CB"]},
+    {"code": "CB", "x": 62, "y": 104, "matches": ["CB"]},
+]
+
+PITCH_ACTIVE_FILL = "#4ade80"
+PITCH_ACTIVE_STROKE = "#166534"
+PITCH_ACTIVE_TEXT = "#0e1117"
+PITCH_INACTIVE_FILL = "#333947"
+PITCH_INACTIVE_STROKE = "#4b5262"
+PITCH_INACTIVE_TEXT = "#aab2c0"
+
+
+def render_position_pitch(selected_codes):
+    """Mini terrain SVG : 12 points pour les 13 postes VALOR (CB/W/FB génériques
+    allument leurs 2 côtés). Construit en une seule chaîne sans saut de ligne pour
+    éviter le piège CommonMark documenté dans render_hero_row.
+    """
+    selected = set(selected_codes)
+    dots = []
+    for pos in PITCH_POSITIONS:
+        active = any(m in selected for m in pos["matches"])
+        fill = PITCH_ACTIVE_FILL if active else PITCH_INACTIVE_FILL
+        stroke = PITCH_ACTIVE_STROKE if active else PITCH_INACTIVE_STROKE
+        text_fill = PITCH_ACTIVE_TEXT if active else PITCH_INACTIVE_TEXT
+        dots.append(
+            f'<circle cx="{pos["x"]}" cy="{pos["y"]}" r="6.6" fill="{fill}" stroke="{stroke}" stroke-width="0.9"></circle>'
+            f'<text x="{pos["x"]}" y="{pos["y"]}" text-anchor="middle" dominant-baseline="central" '
+            f'font-size="5" font-weight="700" fill="{text_fill}">{pos["code"]}</text>'
+        )
+    svg = (
+        '<svg width="100%" viewBox="0 0 100 120" style="max-width:170px;display:block;margin:0 auto;">'
+        '<rect x="2" y="2" width="96" height="116" rx="3" fill="#132a1e" stroke="rgba(255,255,255,0.35)" stroke-width="0.8"></rect>'
+        '<line x1="2" y1="60" x2="98" y2="60" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></line>'
+        '<circle cx="50" cy="60" r="11" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></circle>'
+        '<circle cx="50" cy="60" r="0.9" fill="rgba(255,255,255,0.28)"></circle>'
+        '<rect x="32" y="2" width="36" height="11" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></rect>'
+        '<rect x="42" y="2" width="16" height="4.5" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></rect>'
+        '<rect x="32" y="107" width="36" height="11" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></rect>'
+        '<rect x="42" y="113.5" width="16" height="4.5" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.6"></rect>'
+        + "".join(dots) +
+        "</svg>"
+    )
+    st.markdown(svg, unsafe_allow_html=True)
+
+
 def render_hero_row(df_top, get_position_label_fn):
     """Affiche une rangée de cards joueurs (avatar initiales + couleur poste, VALOR, barre).
 

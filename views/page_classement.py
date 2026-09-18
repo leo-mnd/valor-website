@@ -4,6 +4,7 @@ from utils.data_loader import (
     load_valor_data, get_position_label,
     league_selector, season_selector, LEAGUES, SEASONS
 )
+from utils.theme import render_position_pitch
 
 
 st.title("📊 Classement complet")
@@ -21,13 +22,17 @@ st.markdown(f"**{len(df)} joueurs** notes — {league_display} {season_display}"
 
 # --- Filtres ---
 postes_dispo = sorted(df["valor_position_12"].unique())
-postes_select = st.pills(
-    "Poste",
-    options=postes_dispo,
-    default=postes_dispo,
-    selection_mode="multi",
-    key="classement_postes",
-) or postes_dispo
+col_postes, col_pitch = st.columns([4, 1])
+with col_postes:
+    postes_select = st.segmented_control(
+        "Poste",
+        options=postes_dispo,
+        default=postes_dispo,
+        selection_mode="multi",
+        key="classement_postes",
+    ) or postes_dispo
+with col_pitch:
+    render_position_pitch(postes_select)
 
 col_f1, col_f2, col_f3 = st.columns([2, 1, 1])
 with col_f1:
