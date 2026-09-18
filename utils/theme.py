@@ -162,10 +162,8 @@ PITCH_POSITIONS = [
 
 PITCH_ACTIVE_FILL = "#4ade80"
 PITCH_ACTIVE_STROKE = "#166534"
-PITCH_ACTIVE_TEXT = "#0e1117"
 PITCH_INACTIVE_FILL = "#333947"
 PITCH_INACTIVE_STROKE = "#4b5262"
-PITCH_INACTIVE_TEXT = "#aab2c0"
 
 
 def render_position_pitch(selected_codes):
@@ -179,11 +177,8 @@ def render_position_pitch(selected_codes):
         active = any(m in selected for m in pos["matches"])
         fill = PITCH_ACTIVE_FILL if active else PITCH_INACTIVE_FILL
         stroke = PITCH_ACTIVE_STROKE if active else PITCH_INACTIVE_STROKE
-        text_fill = PITCH_ACTIVE_TEXT if active else PITCH_INACTIVE_TEXT
         dots.append(
             f'<circle cx="{pos["x"]}" cy="{pos["y"]}" r="6.6" fill="{fill}" stroke="{stroke}" stroke-width="0.9"></circle>'
-            f'<text x="{pos["x"]}" y="{pos["y"]}" text-anchor="middle" dominant-baseline="central" '
-            f'font-size="5" font-weight="700" fill="{text_fill}">{pos["code"]}</text>'
         )
     svg = (
         '<svg width="100%" viewBox="0 0 100 120" style="max-width:170px;display:block;margin:0 auto;">'
