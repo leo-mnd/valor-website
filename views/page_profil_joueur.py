@@ -11,15 +11,18 @@ from utils.data_loader import (
 from utils.charts import player_radar
 
 
+st.title("🎯 Profil joueur")
+
 # --- Sélecteurs ---
-league_slug = league_selector(default="ligue1", key="profil_league")
+col_league, col_season = st.columns([3, 1])
+with col_league:
+    league_slug = league_selector(default="ligue1", key="profil_league")
+with col_season:
+    season_slug = season_selector(default="2025_2026", key="profil_season")
 league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2025_2026", key="profil_season")
 season_display = SEASONS[season_slug]["display"]
 
 df = load_valor_data(league_slug, season_slug)
-
-st.title("🎯 Profil joueur")
 
 # --- Sélection joueur ---
 joueurs = sorted(df["Player"].unique())

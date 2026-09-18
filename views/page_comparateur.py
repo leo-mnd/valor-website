@@ -8,15 +8,18 @@ from utils.data_loader import (
 from utils.charts import comparison_radar
 
 
-league_slug = league_selector(default="ligue1", key="comparateur_league")
+st.title("⚔️ Comparateur de joueurs")
+st.markdown("Compare 2 joueurs sur leur profil tactique respectif.")
+
+col_league, col_season = st.columns([3, 1])
+with col_league:
+    league_slug = league_selector(default="ligue1", key="comparateur_league")
+with col_season:
+    season_slug = season_selector(default="2025_2026", key="comparateur_season")
 league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2025_2026", key="comparateur_season")
 season_display = SEASONS[season_slug]["display"]
 
 df = load_valor_data(league_slug, season_slug)
-
-st.title("⚔️ Comparateur de joueurs")
-st.markdown("Compare 2 joueurs sur leur profil tactique respectif.")
 
 # --- Selection 2 joueurs ---
 joueurs = sorted(df["Player"].unique())

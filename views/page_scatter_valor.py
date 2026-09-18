@@ -6,32 +6,34 @@ from utils.data_loader import (
     load_valor_data, get_position_label,
     league_selector, season_selector, LEAGUES, SEASONS
 )
-# --- Sélecteurs (sidebar) ---
-league_slug = league_selector(default="ligue1", key="scatter_league")
+# --- Header ---
+st.title("📈 Scatter VALOR")
+
+col_league, col_season = st.columns([3, 1])
+with col_league:
+    league_slug = league_selector(default="ligue1", key="scatter_league")
+with col_season:
+    season_slug = season_selector(default="2025_2026", key="scatter_season")
 league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2025_2026", key="scatter_season")
 season_display = SEASONS[season_slug]["display"]
 
 # --- Charger la data ---
 df = load_valor_data(league_slug, season_slug)
 
 # --- Sélecteur poste ---
-st.sidebar.markdown("---")
 positions_dispo = sorted(df["valor_position_12"].unique())
-poste_default_idx = positions_dispo.index("ST") if "ST" in positions_dispo else 0
-poste_select = st.sidebar.selectbox(
-    "🎯 Poste",
+poste_default = "ST" if "ST" in positions_dispo else positions_dispo[0]
+poste_select = st.segmented_control(
+    "Poste",
     options=positions_dispo,
-    index=poste_default_idx,
-    format_func=lambda x: f"{x} ({get_position_label(x)})",
+    default=poste_default,
+    required=True,
     key="scatter_poste",
 )
 
 # --- Filtrer et préparer ---
 df_filtered = df[df["valor_position_12"] == poste_select].copy()
 
-# --- Header ---
-st.title("📈 Scatter VALOR")
 st.markdown(f"**{league_display} — {season_display}** | Poste : {get_position_label(poste_select)} ({len(df_filtered)} joueurs)")
 st.markdown("---")
 

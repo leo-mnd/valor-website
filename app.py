@@ -10,11 +10,11 @@ st.set_page_config(
 inject_css()
 
 pages = [
-    st.Page("pages/page_accueil.py", title="Accueil", icon="⚽", default=True),
-    st.Page("pages/page_classement.py", title="Classement", icon="📊"),
-    st.Page("pages/page_profil_joueur.py", title="Profil joueur", icon="🎯"),
-    st.Page("pages/page_comparateur.py", title="Comparateur", icon="⚔️"),
-    st.Page("pages/page_scatter_valor.py", title="Scatter VALOR", icon="📈"),
+    st.Page("views/page_accueil.py", title="Accueil", icon="⚽", default=True),
+    st.Page("views/page_classement.py", title="Classement", icon="📊"),
+    st.Page("views/page_profil_joueur.py", title="Profil joueur", icon="🎯"),
+    st.Page("views/page_comparateur.py", title="Comparateur", icon="⚔️"),
+    st.Page("views/page_scatter_valor.py", title="Scatter VALOR", icon="📈"),
 ]
 
 st.navigation(pages, position="top").run()

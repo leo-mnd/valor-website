@@ -6,25 +6,27 @@ from utils.data_loader import (
 )
 from utils.theme import render_hero_row
 
-# --- Sélecteurs (sidebar) ---
-league_slug = league_selector(default="ligue1")
-league_display = LEAGUES[league_slug]["display"]
-season_slug = season_selector(default="2025_2026")
-season_display = SEASONS[season_slug]["display"]
-
-# --- Charger la data ---
-df = load_valor_data(league_slug, season_slug)
-
 # --- Header ---
 st.markdown('<p class="valor-hero-title">⚽ VALOR</p>', unsafe_allow_html=True)
 st.markdown(
     '<p class="valor-hero-subtitle">Valuation Analytics for League Optimized Rating</p>',
     unsafe_allow_html=True,
 )
-st.markdown(f"**{league_display} — {season_display}**")
+
+# --- Sélecteurs ---
+col_league, col_season = st.columns([3, 1])
+with col_league:
+    league_slug = league_selector(default="ligue1")
+with col_season:
+    season_slug = season_selector(default="2025_2026")
+league_display = LEAGUES[league_slug]["display"]
+season_display = SEASONS[season_slug]["display"]
+
+# --- Charger la data ---
+df = load_valor_data(league_slug, season_slug)
 
 # --- Hero : Top 3 ---
-st.markdown("### 🏆 Top 3")
+st.markdown(f"### 🏆 Top 3 — {league_display} {season_display}")
 top3 = df.nlargest(3, "VALOR")
 render_hero_row(top3, get_position_label)
 

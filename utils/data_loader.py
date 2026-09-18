@@ -96,17 +96,18 @@ def get_metric_label(metric_code: str) -> str:
 
 def league_selector(default: str = "ligue1", key: str = "league_selector") -> str:
     """
-    Affiche un sélecteur de ligue dans la sidebar Streamlit.
+    Affiche un sélecteur de ligue en pills dans le corps de la page.
     Retourne le slug de la ligue sélectionnée.
     """
     league_names = [v["display"] for v in LEAGUES.values()]
     default_display = LEAGUES[default]["display"]
-    default_idx = league_names.index(default_display)
-    
-    selected_display = st.sidebar.selectbox(
-        "🏆 Championnat",
+
+    selected_display = st.pills(
+        "Championnat",
         options=league_names,
-        index=default_idx,
+        default=default_display,
+        selection_mode="single",
+        required=True,
         key=key,
     )
     return LEAGUE_DISPLAY_TO_SLUG[selected_display]
@@ -114,21 +115,21 @@ def league_selector(default: str = "ligue1", key: str = "league_selector") -> st
 LATEST_SEASON = "2025_2026"  # À mettre à jour à chaque nouvelle saison
 
 def season_selector(default: str = None, key: str = "season_selector") -> str:
-    if default is None:
-        default = LATEST_SEASON
-    # ... reste inchangé
     """
-    Affiche un sélecteur de saison dans la sidebar Streamlit.
+    Affiche un sélecteur de saison en pills dans le corps de la page.
     Retourne le slug de la saison sélectionnée.
     """
+    if default is None:
+        default = LATEST_SEASON
     season_names = [v["display"] for v in SEASONS.values()]
     default_display = SEASONS[default]["display"]
-    default_idx = season_names.index(default_display)
-    
-    selected_display = st.sidebar.selectbox(
-        "📅 Saison",
+
+    selected_display = st.pills(
+        "Saison",
         options=season_names,
-        index=default_idx,
+        default=default_display,
+        selection_mode="single",
+        required=True,
         key=key,
     )
     return SEASON_DISPLAY_TO_SLUG[selected_display]
