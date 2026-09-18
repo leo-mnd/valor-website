@@ -4,9 +4,11 @@ from utils.data_loader import (
     load_valor_data, get_position_label,
     league_selector, season_selector, LEAGUES, SEASONS
 )
+from utils.theme import inject_css
 
 
 st.set_page_config(page_title="Classement — VALOR", page_icon="📊", layout="wide")
+inject_css()
 
 league_slug = league_selector(default="ligue1", key="classement_league")
 league_display = LEAGUES[league_slug]["display"]

@@ -6,9 +6,11 @@ from utils.data_loader import (
     league_selector, season_selector, LEAGUES, SEASONS
 )
 from utils.charts import comparison_radar
+from utils.theme import inject_css
 
 
 st.set_page_config(page_title="Comparateur — VALOR", page_icon="⚔️", layout="wide")
+inject_css()
 
 league_slug = league_selector(default="ligue1", key="comparateur_league")
 league_display = LEAGUES[league_slug]["display"]

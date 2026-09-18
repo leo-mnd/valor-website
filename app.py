@@ -4,12 +4,14 @@ from utils.data_loader import (
     load_valor_data, get_position_label,
     league_selector, season_selector, LEAGUES, SEASONS
 )
+from utils.theme import inject_css, render_hero_row
 
 st.set_page_config(
     page_title="VALOR — Big 5",
     page_icon="⚽",
     layout="wide",
 )
+inject_css()
 
 # --- Sélecteurs (sidebar) ---
 league_slug = league_selector(default="ligue1")
@@ -21,10 +23,17 @@ season_display = SEASONS[season_slug]["display"]
 df = load_valor_data(league_slug, season_slug)
 
 # --- Header ---
-st.title("⚽ VALOR")
-st.subheader("Valuation Analytics for League Optimized Rating")
+st.markdown('<p class="valor-hero-title">⚽ VALOR</p>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="valor-hero-subtitle">Valuation Analytics for League Optimized Rating</p>',
+    unsafe_allow_html=True,
+)
 st.markdown(f"**{league_display} — {season_display}**")
-st.markdown("---")
+
+# --- Hero : Top 3 ---
+st.markdown("### 🏆 Top 3")
+top3 = df.nlargest(3, "VALOR")
+render_hero_row(top3, get_position_label)
 
 # --- KPIs ---
 col1, col2, col3, col4 = st.columns(4)
@@ -36,12 +45,19 @@ col4.metric("VALOR max", f"{df['VALOR'].max():.1f}")
 st.markdown("---")
 
 # --- Top 10 ---
-st.markdown(f"### 🏆 Top 10 — {league_display} {season_display}")
+st.markdown(f"### 📋 Top 10 — {league_display} {season_display}")
 top10 = df.nlargest(10, "VALOR")[["Rang", "Player", "Squad", "valor_position_12", "VALOR"]].copy()
 top10["Poste"] = top10["valor_position_12"].apply(get_position_label)
 top10 = top10[["Rang", "Player", "Squad", "Poste", "VALOR"]]
 top10.columns = ["Rang", "Joueur", "Équipe", "Poste", "VALOR"]
-st.dataframe(top10, hide_index=True, width="stretch")
+st.dataframe(
+    top10,
+    hide_index=True,
+    width="stretch",
+    column_config={
+        "VALOR": st.column_config.ProgressColumn("VALOR", min_value=0, max_value=100, format="%.1f"),
+    },
+)
 
 # --- Info ---
 st.markdown("---")
