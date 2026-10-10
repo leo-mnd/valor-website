@@ -19,8 +19,11 @@ LEAGUE_DISPLAY_TO_SLUG = {v["display"]: k for k, v in LEAGUES.items()}
 
 # Mapping saison → slug fichier et nom d'affichage
 SEASONS = {
+    "2022_2023": {"display": "2022-2023", "slug": "2022_2023"},
+    "2023_2024": {"display": "2023-2024", "slug": "2023_2024"},
     "2024_2025": {"display": "2024-2025", "slug": "2024_2025"},
     "2025_2026": {"display": "2025-2026", "slug": "2025_2026"},
+    "2026_2027": {"display": "2026-2027", "slug": "2026_2027"},
 }
 
 SEASON_DISPLAY_TO_SLUG = {v["display"]: k for k, v in SEASONS.items()}
