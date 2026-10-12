@@ -226,70 +226,92 @@ with col_top_right:
     
     st.plotly_chart(fig_radar, use_container_width=True)
 
-# --- LIGNE 2 : Bas gauche (évolution VALOR) + Bas droite (Similar Players) ---
-col_bot_left, col_bot_right = st.columns([1, 1])
+# --- LIGNE 2 : Évolution VALOR sur 5 saisons (pleine largeur) ---
+st.markdown("---")
+st.subheader("📈 Évolution du VALOR sur 5 saisons")
 
-with col_bot_left:
-    st.subheader("📈 Évolution VALOR vs médian poste/ligue")
-    
-    # Récupérer VALOR médian pour ce poste dans cette ligue par saison
-    seasons_data = []
-    for s_slug in SEASON_KEYS:
-        try:
-            df_s = load_valor_data(league_slug, s_slug)
-            median_valor = df_s[df_s["valor_position_12"] == poste]["VALOR"].median()
-            player_valor = None
-            match = df_s[df_s["Player"] == player_name]
-            if len(match) > 0:
-                player_valor = match.iloc[0]["VALOR"]
-            seasons_data.append({
-                "Saison": SEASONS[s_slug]["display"],
-                "Joueur": player_valor,
-                f"Médian {poste} ({league_display})": median_valor,
-            })
-        except Exception:
-            pass
-    
-    df_evol_valor = pd.DataFrame(seasons_data)
-    
-    if len(df_evol_valor) > 0:
-        fig_evol = go.Figure()
-        
-        # Ligne joueur
-        fig_evol.add_trace(go.Scatter(
-            x=df_evol_valor["Saison"], y=df_evol_valor["Joueur"],
-            mode="lines+markers",
-            name=player_name,
-            line=dict(color="#4ade80", width=3),
-            marker=dict(size=14),
-        ))
-        
-        # Ligne médian
-        median_col = f"Médian {poste} ({league_display})"
-        fig_evol.add_trace(go.Scatter(
-            x=df_evol_valor["Saison"], y=df_evol_valor[median_col],
-            mode="lines+markers",
-            name=f"Médian {get_position_label(poste)}",
-            line=dict(color="#94a3b8", width=2, dash="dash"),
-            marker=dict(size=10),
-        ))
-        
-        fig_evol.update_layout(
-            template="plotly_dark",
-            plot_bgcolor="#0e1117",
-            paper_bgcolor="#0e1117",
-            font=dict(color="white"),
-            xaxis_title="Saison",
-            yaxis_title="VALOR",
-            yaxis=dict(range=[30, 100], gridcolor="rgba(255,255,255,0.1)"),
-            xaxis=dict(gridcolor="rgba(255,255,255,0.1)"),
-            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5),
-            height=400,
-        )
-        st.plotly_chart(fig_evol, use_container_width=True)
-    else:
-        st.info("Pas assez de données historiques pour ce joueur.")
+# Pour chaque saison, on cherche le joueur dans les 5 ligues (pas que la
+# ligue sélectionnée) pour ne pas perdre le fil en cas de transfert Big 5.
+# Le médian de référence, lui, reste fixé sur le poste/ligue actuels du
+# joueur : c'est l'étalon qui ne bouge pas, pour juger l'évolution dans un
+# cadre stable même si le joueur a changé de club/championnat entre-temps.
+seasons_data = []
+for s_slug in SEASON_KEYS:
+    try:
+        df_all_s = load_all_leagues_season(s_slug)
+        if len(df_all_s) == 0:
+            continue
+        df_league_s = df_all_s[df_all_s["__league_slug"] == league_slug]
+        median_valor = df_league_s[df_league_s["valor_position_12"] == poste]["VALOR"].median()
 
+        match = df_all_s[df_all_s["Player"] == player_name]
+        player_valor, player_club, player_league = None, None, None
+        if len(match) > 0:
+            row = match.iloc[0]
+            player_valor = row["VALOR"]
+            player_club = row["Squad"]
+            player_league = row["__league_display"]
+
+        seasons_data.append({
+            "Saison": SEASONS[s_slug]["display"],
+            "Joueur": player_valor,
+            "Club": player_club,
+            "Ligue": player_league,
+            f"Médian {poste} ({league_display})": median_valor,
+        })
+    except Exception:
+        pass
+
+df_evol_valor = pd.DataFrame(seasons_data)
+
+if len(df_evol_valor) > 0 and df_evol_valor["Joueur"].notna().sum() > 0:
+    fig_evol = go.Figure()
+
+    # Ligne joueur (hover avec club + ligue de la saison)
+    fig_evol.add_trace(go.Scatter(
+        x=df_evol_valor["Saison"], y=df_evol_valor["Joueur"],
+        mode="lines+markers",
+        name=player_name,
+        line=dict(color="#4ade80", width=3),
+        marker=dict(size=14),
+        customdata=df_evol_valor[["Club", "Ligue"]],
+        hovertemplate="<b>%{x}</b><br>VALOR : %{y:.1f}<br>%{customdata[0]} (%{customdata[1]})<extra></extra>",
+    ))
+
+    # Ligne médian (étalon fixe : poste + ligue actuels du joueur)
+    median_col = f"Médian {poste} ({league_display})"
+    fig_evol.add_trace(go.Scatter(
+        x=df_evol_valor["Saison"], y=df_evol_valor[median_col],
+        mode="lines+markers",
+        name=f"Médian {get_position_label(poste)} ({league_display})",
+        line=dict(color="#94a3b8", width=2, dash="dash"),
+        marker=dict(size=10),
+        hovertemplate="<b>%{x}</b><br>Médian : %{y:.1f}<extra></extra>",
+    ))
+
+    fig_evol.update_layout(
+        template="plotly_dark",
+        plot_bgcolor="#0e1117",
+        paper_bgcolor="#0e1117",
+        font=dict(color="white"),
+        xaxis_title="Saison",
+        yaxis_title="VALOR",
+        yaxis=dict(range=[30, 100], gridcolor="rgba(255,255,255,0.1)"),
+        xaxis=dict(gridcolor="rgba(255,255,255,0.1)"),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        height=420,
+        margin=dict(t=20),
+    )
+    st.plotly_chart(fig_evol, use_container_width=True)
+    if df_evol_valor["Joueur"].isna().any():
+        st.caption("Les saisons sans point : joueur absent du Big 5 (hors championnat suivi, blessure longue, etc.).")
+else:
+    st.info("Pas assez de données historiques pour ce joueur.")
+
+st.markdown("---")
+
+# --- LIGNE 3 : Joueurs au profil similaire ---
+col_bot_right = st.container()
 with col_bot_right:
     st.subheader("🎯 Joueurs au profil similaire")
     st.caption(f"Big 5 · {season_display}")
