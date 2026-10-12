@@ -43,7 +43,10 @@ col_h4.metric("Rang ligue", f"#{int(player['Rang'])}")
 st.markdown("---")
 
 # --- Charger la saison précédente pour évolution ---
-prev_season_slug = "2024_2025" if season_slug == "2025_2026" else None
+SEASON_KEYS = list(SEASONS.keys())
+_season_idx = SEASON_KEYS.index(season_slug)
+prev_season_slug = SEASON_KEYS[_season_idx - 1] if _season_idx > 0 else None
+prev_season_display = SEASONS[prev_season_slug]["display"] if prev_season_slug else "N/A"
 player_prev = None
 if prev_season_slug:
     try:
@@ -152,7 +155,7 @@ with col_top_left:
         
         rows.append((label, cur_str, prev_str, delta))
     
-    df_evol = pd.DataFrame(rows, columns=["Métrique", season_display, "2024-2025", "Δ"])
+    df_evol = pd.DataFrame(rows, columns=["Métrique", season_display, prev_season_display, "Δ"])
     st.dataframe(df_evol, hide_index=True, use_container_width=True, height=350)
 
 with col_top_right:
@@ -202,7 +205,7 @@ with col_top_right:
             r=values_prev,
             theta=labels_cur,
             fill="toself",
-            name="2024-2025",
+            name=prev_season_display,
             line=dict(color="#60a5fa", width=2),
             fillcolor="rgba(96, 165, 250, 0.15)",
         ))
@@ -231,7 +234,7 @@ with col_bot_left:
     
     # Récupérer VALOR médian pour ce poste dans cette ligue par saison
     seasons_data = []
-    for s_slug in ["2024_2025", "2025_2026"]:
+    for s_slug in SEASON_KEYS:
         try:
             df_s = load_valor_data(league_slug, s_slug)
             median_valor = df_s[df_s["valor_position_12"] == poste]["VALOR"].median()
