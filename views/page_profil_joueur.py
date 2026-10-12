@@ -226,9 +226,8 @@ with col_top_right:
     
     st.plotly_chart(fig_radar, use_container_width=True)
 
-# --- LIGNE 2 : Évolution VALOR sur 5 saisons (pleine largeur) ---
-st.markdown("---")
-st.subheader("📈 Évolution du VALOR sur 5 saisons")
+# --- LIGNE 2 : Évolution VALOR sur 5 saisons (pleine largeur, card stylée) ---
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Pour chaque saison, on cherche le joueur dans les 5 ligues (pas que la
 # ligue sélectionnée) pour ne pas perdre le fil en cas de transfert Big 5.
@@ -263,50 +262,116 @@ for s_slug in SEASON_KEYS:
         pass
 
 df_evol_valor = pd.DataFrame(seasons_data)
+median_col = f"Médian {poste} ({league_display})"
 
-if len(df_evol_valor) > 0 and df_evol_valor["Joueur"].notna().sum() > 0:
-    fig_evol = go.Figure()
-
-    # Ligne joueur (hover avec club + ligue de la saison)
-    fig_evol.add_trace(go.Scatter(
-        x=df_evol_valor["Saison"], y=df_evol_valor["Joueur"],
-        mode="lines+markers",
-        name=player_name,
-        line=dict(color="#4ade80", width=3),
-        marker=dict(size=14),
-        customdata=df_evol_valor[["Club", "Ligue"]],
-        hovertemplate="<b>%{x}</b><br>VALOR : %{y:.1f}<br>%{customdata[0]} (%{customdata[1]})<extra></extra>",
-    ))
-
-    # Ligne médian (étalon fixe : poste + ligue actuels du joueur)
-    median_col = f"Médian {poste} ({league_display})"
-    fig_evol.add_trace(go.Scatter(
-        x=df_evol_valor["Saison"], y=df_evol_valor[median_col],
-        mode="lines+markers",
-        name=f"Médian {get_position_label(poste)} ({league_display})",
-        line=dict(color="#94a3b8", width=2, dash="dash"),
-        marker=dict(size=10),
-        hovertemplate="<b>%{x}</b><br>Médian : %{y:.1f}<extra></extra>",
-    ))
-
-    fig_evol.update_layout(
-        template="plotly_dark",
-        plot_bgcolor="#0e1117",
-        paper_bgcolor="#0e1117",
-        font=dict(color="white"),
-        xaxis_title="Saison",
-        yaxis_title="VALOR",
-        yaxis=dict(range=[30, 100], gridcolor="rgba(255,255,255,0.1)"),
-        xaxis=dict(gridcolor="rgba(255,255,255,0.1)"),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
-        height=420,
-        margin=dict(t=20),
+with st.container(border=True):
+    # Marqueur invisible : seul moyen fiable de cibler CSS cette card précise
+    # (st.container(border=True) ne pose pas de classe dédiée par défaut).
+    delta_badge = ""
+    if player_prev is not None:
+        delta_val = float(player["VALOR"] - player_prev["VALOR"])
+        if delta_val > 0.05:
+            badge_class, arrow = "valor-badge-up", "▲"
+        elif delta_val < -0.05:
+            badge_class, arrow = "valor-badge-down", "▼"
+        else:
+            badge_class, arrow = "valor-badge-flat", "▬"
+        delta_badge = (
+            f'<span class="valor-badge {badge_class}">{arrow} {delta_val:+.1f} pts '
+            f'vs {prev_season_display}</span>'
+        )
+    st.markdown(
+        '<div class="valor-chart-card-marker" style="display:flex;align-items:center;'
+        f'gap:12px;flex-wrap:wrap;padding:10px 6px 0 6px;">'
+        f'<span class="valor-section-title">📈 Évolution du VALOR sur 5 saisons</span>'
+        f'{delta_badge}</div>',
+        unsafe_allow_html=True,
     )
-    st.plotly_chart(fig_evol, use_container_width=True)
-    if df_evol_valor["Joueur"].isna().any():
-        st.caption("Les saisons sans point : joueur absent du Big 5 (hors championnat suivi, blessure longue, etc.).")
-else:
-    st.info("Pas assez de données historiques pour ce joueur.")
+
+    if len(df_evol_valor) > 0 and df_evol_valor["Joueur"].notna().sum() > 0:
+        # Repère les points "transfert" (changement de championnat suivi vs la
+        # dernière saison où le joueur avait des données) pour les distinguer
+        # visuellement, et la saison actuellement sélectionnée pour la mettre
+        # en avant.
+        marker_sizes, marker_symbols, marker_line_widths = [], [], []
+        annotations = []
+        prev_league = None
+        for _, row in df_evol_valor.iterrows():
+            is_current = row["Saison"] == season_display
+            is_transfer = (
+                pd.notna(row["Ligue"]) and prev_league is not None and row["Ligue"] != prev_league
+            )
+            if pd.notna(row["Ligue"]):
+                prev_league = row["Ligue"]
+
+            marker_sizes.append(18 if is_current else 11)
+            marker_symbols.append("diamond" if is_transfer else "circle")
+            marker_line_widths.append(3 if is_current else 1)
+            if is_transfer:
+                annotations.append(dict(
+                    x=row["Saison"], y=row["Joueur"],
+                    text=row["Ligue"].split(" ")[0],
+                    showarrow=False, yshift=22,
+                    font=dict(size=15),
+                ))
+
+        fig_evol = go.Figure()
+
+        # Ligne médian (étalon fixe, en arrière-plan, poste + ligue actuels)
+        fig_evol.add_trace(go.Scatter(
+            x=df_evol_valor["Saison"], y=df_evol_valor[median_col],
+            mode="lines+markers",
+            name=f"Médian {get_position_label(poste)} ({league_display})",
+            line=dict(color="#94a3b8", width=2, dash="dash", shape="spline", smoothing=0.3),
+            marker=dict(size=7, color="#94a3b8"),
+            hovertemplate="<b>%{x}</b><br>Médian : %{y:.1f}<extra></extra>",
+        ))
+
+        # Ligne joueur : courbe lissée + dégradé sous la courbe + markers
+        # agrandis sur la saison en cours / changement de championnat.
+        fig_evol.add_trace(go.Scatter(
+            x=df_evol_valor["Saison"], y=df_evol_valor["Joueur"],
+            mode="lines+markers",
+            name=player_name,
+            line=dict(color="#4ade80", width=3.5, shape="spline", smoothing=0.3),
+            marker=dict(
+                size=marker_sizes, symbol=marker_symbols, color="#4ade80",
+                line=dict(width=marker_line_widths, color="#0e1117"),
+            ),
+            fill="tozeroy",
+            fillgradient=dict(
+                type="vertical",
+                colorscale=[[0, "rgba(74,222,128,0.32)"], [1, "rgba(74,222,128,0.0)"]],
+            ),
+            customdata=df_evol_valor[["Club", "Ligue"]],
+            hovertemplate="<b>%{x}</b><br>VALOR : %{y:.1f}<br>%{customdata[0]} (%{customdata[1]})<extra></extra>",
+        ))
+
+        fig_evol.update_layout(
+            template="plotly_dark",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e2e8f0", family="Geist Sans, sans-serif", size=13),
+            yaxis_title="VALOR",
+            yaxis=dict(range=[30, 100], gridcolor="rgba(255,255,255,0.06)", zeroline=False),
+            xaxis=dict(showgrid=False, zeroline=False),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=-0.22, xanchor="center", x=0.5,
+                font=dict(size=12), bgcolor="rgba(0,0,0,0)",
+            ),
+            hoverlabel=dict(
+                bgcolor="#161a23", bordercolor="rgba(255,255,255,0.12)",
+                font=dict(family="Geist Sans, sans-serif", size=13, color="#fafafa"),
+            ),
+            annotations=annotations,
+            height=420,
+            margin=dict(t=30, b=10, l=10, r=10),
+        )
+        st.plotly_chart(fig_evol, use_container_width=True)
+        if df_evol_valor["Joueur"].isna().any():
+            st.caption("Point manquant : joueur absent du Big 5 cette saison-là (hors championnat suivi, blessure longue, etc.).")
+    else:
+        st.info("Pas assez de données historiques pour ce joueur.")
 
 st.markdown("---")
 

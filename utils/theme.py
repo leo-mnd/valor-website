@@ -141,6 +141,40 @@ def inject_css():
         from { opacity: 0; transform: translateY(14px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Card bordée pour les graphiques "héros" (ex: évolution VALOR) : on ne
+       cible que le conteneur qui embarque le marqueur .valor-chart-card-marker,
+       pour ne pas repeindre tous les st.container(border=True) du site. */
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(.valor-chart-card-marker) {
+        background: linear-gradient(160deg, #161a23 0%, #10131a 100%);
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        padding: 6px 10px;
+    }
+
+    .valor-section-title {
+        font-size: 21px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #4ade80, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .valor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .valor-badge-up { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+    .valor-badge-down { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+    .valor-badge-flat { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
     </style>
     """, unsafe_allow_html=True)
 
