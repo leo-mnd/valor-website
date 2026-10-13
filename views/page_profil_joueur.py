@@ -42,6 +42,47 @@ col_h4.metric("Rang ligue", f"#{int(player['Rang'])}")
 
 st.markdown("---")
 
+# --- COMPRENDRE SON VALOR : descriptif + points forts / points faibles ---
+st.subheader("🧭 Comprendre son VALOR")
+st.caption(
+    f"VALOR compare {player_name} aux autres {get_position_label(poste).lower()}s du Big 5 "
+    "sur un ensemble de métriques offensives et défensives ajustées par la force du "
+    "calendrier. 50 = médiane du poste, 100 = meilleur profil statistique possible."
+)
+
+has_data = "valor_strength_metric" in player.index
+
+strength_metric = player.get("valor_strength_metric")
+strength_pct = player.get("valor_strength_pct")
+weakness_metric = player.get("valor_weakness_metric")
+weakness_pct = player.get("valor_weakness_pct")
+has_strength = strength_metric is not None and pd.notna(strength_metric)
+has_weakness = weakness_metric is not None and pd.notna(weakness_metric)
+
+if has_data:
+    col_strengths, col_weaknesses = st.columns(2)
+    with col_strengths:
+        st.markdown("**💪 Point fort**")
+        if has_strength:
+            st.markdown(f"- {get_metric_label(strength_metric)} — {strength_pct:.0f}e percentile du poste")
+        else:
+            st.caption("Rien ne se détache nettement (aucune métrique au-dessus du 70e percentile du poste).")
+    with col_weaknesses:
+        st.markdown("**⚠️ Point faible**")
+        if has_weakness:
+            st.markdown(f"- {get_metric_label(weakness_metric)} — {weakness_pct:.0f}e percentile du poste")
+        else:
+            st.caption("Profil solide partout : même son point le moins fort reste dans le haut du poste (70e percentile ou plus).")
+    st.caption(
+        "Classé par contribution réelle au score (métrique × poids dans la grille du poste), "
+        "affiché seulement si le point fort dépasse le 70e percentile du poste, ou si le point "
+        "faible reste sous ce seuil."
+    )
+else:
+    st.info("Détail point fort / point faible pas encore disponible pour cette saison (données à régénérer avec le pipeline à jour).")
+
+st.markdown("---")
+
 # --- Charger la saison précédente pour évolution ---
 SEASON_KEYS = list(SEASONS.keys())
 _season_idx = SEASON_KEYS.index(season_slug)
